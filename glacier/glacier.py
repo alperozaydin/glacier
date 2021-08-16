@@ -2,10 +2,8 @@ import boto3
 from pathlib import Path
 import json
 import time
-import logging
+from loguru import logger
 from glacier.constants import INVENTORY_IDS
-
-LOG = logging.getLogger(__name__)
 
 
 class Glacier:
@@ -24,7 +22,7 @@ class Glacier:
     def init_vault_folder(self):
         response = boto3.client("glacier").list_vaults()
         vault_names = [vault.get("VaultName") for vault in response.get("VaultList")]
-        LOG.info(vault_names)
+        logger.info(vault_names)
         for vault_name in vault_names:
             Path(f"vaults/{vault_name}/data/").mkdir(parents=True, exist_ok=True)
 
@@ -33,7 +31,7 @@ class Glacier:
             self.account_id, self.vault_name, self.retrieve_inventory_id
         )
         response = job.get_output()
-        LOG.info(response)
+        logger.info(response)
         with open(self.inventory_output_path, "wb") as f:
             f.write(response["body"].read())
 
@@ -41,13 +39,13 @@ class Glacier:
         output = boto3.client("glacier").initiate_job(
             vaultName=self.vault_name, jobParameters={"Type": "inventory-retrieval"}
         )
-        LOG.debug(output)
+        logger.debug(output)
         job_id = output.get("jobId")
-        LOG.info(job_id)
+        logger.info(job_id)
 
     def init_archive_job(self):
         if Path(self.archive_job_ids_path).exists():
-            LOG.info("Archive Retrieval job is already initialized")
+            logger.info("Archive Retrieval job is already initialized")
             return
         with open(self.inventory_output_path, "r") as f:
             output = json.loads(f.read())
@@ -67,7 +65,7 @@ class Glacier:
 
         with open(self.archive_job_ids_path, "w") as f:
             f.write(json.dumps({"JobIds": archive_job_ids}))
-        LOG.info("Archive Retrieval job is initialized")
+        logger.info("Archive Retrieval job is initialized")
 
     def retrieve_archive(self):
         with open(self.archive_job_ids_path, "r") as f:
@@ -77,16 +75,18 @@ class Glacier:
         for job_id in job_ids:
             job = self.client.Job(self.account_id, self.vault_name, job_id)
             while not job.completed:
-                LOG.info(f"{job.job_id} is not ready yet. Sleeping for 60 seconds...")
+                logger.info(
+                    f"{job.job_id} is not ready yet. Sleeping for 60 seconds..."
+                )
                 time.sleep(60)
                 job = self.client.Job(self.account_id, self.vault_name, job_id)
             response = job.get_output()
-            LOG.info(f"Downloading {job.job_id}")
+            logger.info(f"Downloading {job.job_id}")
             with open(
                 self.archive_data / f"{str(time.time())}.{self.output_format}", "wb"
             ) as f:
                 f.write(response["body"].read())
-            LOG.info(f"Downloaded {job.job_id}")
+            logger.info(f"Downloaded {job.job_id}")
 
     def is_archive_jobs_completed(self):
         with open(self.archive_job_ids_path, "r") as f:
@@ -95,4 +95,4 @@ class Glacier:
 
         for job_id in job_ids:
             job = self.client.Job(self.account_id, self.vault_name, job_id)
-            LOG.info(job.completed)
+            logger.info(job.completed)

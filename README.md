@@ -1,12 +1,5 @@
 # glacier
 
-
-[![Pypi link](https://img.shields.io/pypi/v/glacier.svg)](https://pypi.python.org/pypi/glacier)
-[![Travis job](https://img.shields.io/travis/alperozaydin/glacier.svg)](https://travis-ci.org/alperozaydin/glacier)
-
-
-
-
 Contains AWS Glacier sample codes
 
 ## Table of Content:
@@ -14,7 +7,6 @@ Contains AWS Glacier sample codes
 - [Intallation](#installation)
 - [Usage](#usage)
 - [TODO](#todo)
-- [Contributing](#contributing)
 - [Credits](#credits)
 
 ## Installation
@@ -22,7 +14,7 @@ Contains AWS Glacier sample codes
 
 ```batch
 
-    $ pip install glacier
+    $ pip install .
 ```
 
 This is the preferred method to install glacier, as it will always
@@ -40,14 +32,6 @@ can guide you through the process.
 ## TODO
 
 - [ ] Add Test
-
-
-## Contributing
-
-Contributions are welcome, and they are greatly appreciated! Every
-little bit helps, and credit will always be given.
-
-For more info please click [here](./CONTRIBUTING.md)
 
 
 ## Credits
